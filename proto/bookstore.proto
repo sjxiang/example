@@ -1,0 +1,221 @@
+syntax = "proto3";  // 告诉编译器此文件使用什么版本的语法
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+package bookstore;
+// package 关键字，指定生成的 xx.pb.go 文件所在的包名。
+
+option go_package = "github.com/sjxiang/example/pb";
+// option 关键字，用来对 .proto 文件进行一些设置
+// 其中 go_package 是必需的设置，而且 go_package 的值必须是包导入的路径。
+
+
+// 书店，这套 API 管理着书架和图书资源。 
+service Bookstore {
+  rpc ListShelves(google.protobuf.Empty) returns (ListShelvesResponse) {
+    option (google.api.http) = { 
+      get: "/v1/shelves" 
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      description: "略";
+      summary: "返回书店中所有书架的列表";
+    };
+  }
+
+  rpc CreateShelf(CreateShelfRequest) returns (Shelf) {
+    option (google.api.http) = {
+      post: "/v1/shelves"
+      body: "shelf"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      description: "略";
+      summary: "在书店中创建一个新的书架";
+    };
+  }
+
+  rpc GetShelf(GetShelfRequest) returns (Shelf) {
+    option (google.api.http) = { 
+      get: "/v1/shelves/{shelf}" 
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      description: "略";
+      summary: "返回书店中指定的书架";
+    };
+  }
+
+  rpc DeleteShelf(DeleteShelfRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = { 
+      delete: "/v1/shelves/{shelf}" 
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      description: "略";
+      summary: "删除书架，包括书架上存储的所有图书";
+    };
+  }
+
+  rpc ListBooks(ListBooksRequest) returns (ListBooksResponse) {
+    option (google.api.http) = { 
+      get: "/v1/shelves/{shelf}/books" 
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      description: "略";
+      summary: "返回书架上的图书列表";
+    };
+  }
+
+  rpc CreateBook(CreateBookRequest) returns (Book) {
+    option (google.api.http) = {
+      post: "/v1/shelves/{shelf}/books"
+      body: "book"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      description: "略";
+      summary: "创建一本新图书";
+    };
+  }
+
+  rpc GetBook(GetBookRequest) returns (Book) { 
+    option (google.api.http) = { 
+      get: "/v1/shelves/{shelf}/books/{book}" 
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      description: "略";
+      summary: "返回特定的图书";
+    };
+  }
+  
+  rpc DeleteBook(DeleteBookRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = { 
+      delete: "/v1/shelves/{shelf}/books/{book}" 
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      description: "略";
+      summary: "从书架上删除一本图书";
+    };
+  }
+}
+
+
+// 书架资源
+message Shelf {
+  // 书架的唯一 id。
+  int64 id = 1;
+  // 书架上的主题(小说、诗歌、性爱等)。
+  string theme = 2;
+  // 书架的大小
+  int64 size = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp updated_at = 5;
+}
+
+// 图书资源
+message Book {
+  // 图书的唯一 id。
+  int64 id = 1;
+  // 图书的作者。
+  string author = 2;
+  // 书名
+  string title = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp updated_at = 5;
+}
+
+// 调用 ListShelves 返回的响应消息。
+message ListShelvesResponse {
+  // 书店里的书架。
+  repeated Shelf shelves = 1;
+}
+
+// CreateShelf 方法的请求消息。
+message CreateShelfRequest {
+  // 要创建的书架数据
+  Shelf shelf = 1;
+}
+
+// GetShelf 方法的请求消息。
+message GetShelfRequest {
+  // 要检索的书架的ID。
+  int64 shelf = 1;
+}
+
+// DeleteShelf 方法的请求消息。
+message DeleteShelfRequest {
+  // 要删除的书架的ID
+  int64 shelf = 1;
+}
+
+
+
+// Request message for ListBooks method.
+message ListBooksRequest {
+  // ID of the shelf which books to list.
+  int64 shelf = 1;
+  string page_token = 2;
+}
+
+// ListBooks 方法的请求消息。
+message ListBooksResponse {
+  // 书架上的图书。
+  repeated Book books = 1;
+  string next_page_token = 2;
+}
+
+// CreateBook 方法的请求消息。
+message CreateBookRequest {
+  // 要在其上创建图书的书架的 ID。
+  int64 shelf = 1;
+  // 在书架上创建的图书数据。
+  Book book = 2;
+}
+
+// GetBook 方法的请求消息。
+message GetBookRequest {
+  // 要从中检索图书的书架的 ID。
+  int64 shelf = 1;
+  // 要检索的图书的 ID。
+  int64 book = 2;
+}
+
+// DeleteBook 方法的请求消息。
+message DeleteBookRequest {
+  // 要从中删除图书的书架的 ID。
+  int64 shelf = 1;
+  // 要删除的图书的 ID。
+  int64 book = 2;
+}
+
+
+// 紧凑
+message NoticeReaderRequest{
+  string msg = 1;
+  oneof notice_way{
+      string email = 2;
+      string phone = 3;
+  }
+}
+
+// 避免歧义
+message Item {
+  string title = 1;
+  string author = 2;
+  int64 price = 3;
+  google.protobuf.Int64Value num = 4;
+  optional int64 total = 5;
+  google.protobuf.StringValue description = 6;  
+}
+
+
+// 消息类型中包含多个字段，每一个字段都由类型、名称组成
+// 位于 '=' 右边的值不是字段默认值，而是数字标签，可以理解为字段身份的标识符，类似于数据库中的主键，不可重复。
+// 标识符用于在编译后的二进制消息格式中，对字段进行识别，一旦你的 protobuf 消息投入使用，字段的标识就不应该再改变。
+// 数字标签的范围是 [1, 536870911]，其中 19000～19999 是保留数字。
+
+// 在定义消息的时候，还可以使用 singular、optional、repeated 3 个关键字来修饰字段：
+// singular：默认值，说明该字段可以出现 0 次或者 1 次（不能超过 1 次）；
+// optional：指定字段为可选字段；
+// repeated：指定字段可以重复任意次数（包括 0），可以看成是一个数组。
+// 在项目开发中，最常用的是 optional、repeated
