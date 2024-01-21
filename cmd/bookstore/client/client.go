@@ -24,7 +24,7 @@ func main() {
 	flag.Parse()
 
 	var opts []grpc.DialOption
-	opts = append(opts, grpc.WithUnaryInterceptor(preprocess("bearer sjxiang")))  // 携带 JWT 
+	opts = append(opts, grpc.WithUnaryInterceptor(authz("bearer sjxiang")))
 
 	if *encrypt {		
 		// 加载证书
@@ -74,8 +74,8 @@ func main() {
 }
 
 
-// 客户端拦截器（预处理）
-func preprocess(token string) grpc.UnaryClientInterceptor {
+// 拦截器（客户端），认证
+func authz(token string) grpc.UnaryClientInterceptor {
 	return func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 		// 创建 metadata 1
 		md := metadata.Pairs(
@@ -88,6 +88,7 @@ func preprocess(token string) grpc.UnaryClientInterceptor {
 		// 基于 metadata 创建 ctx
 		ctx = metadata.NewOutgoingContext(ctx, md)
 
+		// 拦截前
 		return invoker(ctx, method, req, reply, cc, opts...)
 	}	
 }

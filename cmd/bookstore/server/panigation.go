@@ -57,3 +57,4 @@ func (t Token) Decode() Page {
 
 	return result
 }
+

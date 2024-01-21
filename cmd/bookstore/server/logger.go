@@ -11,14 +11,14 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// 服务端拦截器，打日志
+// 拦截器（服务端），访问日志
 func GrpcLogger(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler,
 	) (resp interface{}, err error) {
 
 	// 前 
 	startTime := time.Now()
 	
-	// biz handle
+	// biz handle 拦截前
 	result, err := handler(ctx, req)
 
 	// 后

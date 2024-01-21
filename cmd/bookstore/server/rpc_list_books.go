@@ -91,3 +91,5 @@ func validateListBooksRequest(req *pb.ListBooksRequest) (violations []*errdetail
 
 
 
+// hasPrev 若为 0，则无
+// hasNext size + 1，判断
