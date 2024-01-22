@@ -3,15 +3,19 @@ package models
 import (
 	"database/sql"
 	"errors"
+	"net/http"
 	"strings"
 	"time"
 
-	"golang.org/x/crypto/bcrypt"
 	"github.com/go-sql-driver/mysql"
+	"golang.org/x/crypto/bcrypt"
+
+	"github.com/sjxiang/example/pkg/apperr"
 )
 
 type UserModelInterface interface {
 	Insert(name, email, password string) error
+	InsertOne(name, email, password string) error 
 	Authenticate(email, password string) (int, error)
 	Exists(id int) (bool, error)
 }
@@ -47,6 +51,30 @@ func (m *UserModel) Insert(name, email, password string) error {
 			}
 		}
 		return err
+	}
+
+	return nil
+}
+
+func (m *UserModel) InsertOne(name, email, password string) error {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 12)
+	if err != nil {
+		return err
+	}
+
+	stmt := `INSERT INTO users (name, email, hashed_password, created)
+    VALUES(?, ?, ?, UTC_TIMESTAMP())`
+
+	_, err = m.DB.Exec(stmt, name, email, string(hashedPassword))
+	if err != nil {
+
+		var mySQLError *mysql.MySQLError
+		if errors.As(err, &mySQLError) {
+			if mySQLError.Number == 1062 && strings.Contains(mySQLError.Message, "users_uc_email") {
+				return apperr.WithHTTPStatus(ErrDuplicateEmail, http.StatusConflict)
+			}
+		}
+		return apperr.WithHTTPStatus(err, http.StatusInternalServerError)
 	}
 
 	return nil

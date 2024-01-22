@@ -1,66 +1,91 @@
 package main
 
 import (
-	"errors"
+	"encoding/base64"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 )
 
-func (app *Config) Login(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
-	}
 
-	err := app.readJSON(w, r, &req)
+type Credentials struct {
+	Name     string `json:"name"`
+	Password string `json:"password"`
+}
+
+// 注册
+func (app *App) register(w http.ResponseWriter, r *http.Request) {
+	
+}
+
+// 登录
+func (app *App) login(w http.ResponseWriter, r *http.Request) {
+	var creds Credentials
+	
+	err := app.readJSON(w, r, &creds)
 	if err != nil {
 		app.errorJSON(w, err, http.StatusBadRequest)
 		return
 	}
 
-	// ***
+	tokenString := base64.StdEncoding.EncodeToString([]byte(creds.Name))
+	expiresAt := time.Now().Add(5 * time.Minute)
 
-	payload := jsonResponse{
-		Error:   false,
-		Message: "Hello world",
+	http.SetCookie(w, &http.Cookie{
+		Name:    "token",
+		Value:   tokenString,
+		Expires: expiresAt,	
+	})	
+}
+
+
+// 刷新
+func (app *App) refresh(w http.ResponseWriter, r *http.Request) {
+
+}
+
+
+// 注销
+func (app *App) logout(w http.ResponseWriter, r *http.Request) {
+	http.SetCookie(w, &http.Cookie{
+		Name:    "token",
+		Expires: time.Now(),  // 二选一，即可
+		MaxAge:  -1,         
+	})
+}
+
+
+
+func (app *App) fetchVideos(w http.ResponseWriter, r *http.Request) {
+
+	c, err := r.Cookie("token") 
+	if err != nil {
+		if err == http.ErrNoCookie {
+			w.WriteHeader(http.StatusUnauthorized)
+			return 
+		}
 	}
-	app.writeJSON(w, http.StatusAccepted, payload)
+		
+	// 参数路由，e.g. `/videos?size=10&&num=1`
+	_ = r.URL.Query().Get("size")  // 每页包含的数据条目
+	_ = r.URL.Query().Get("num")   // 当前页码
+
+	// 其它操作
+	_ = c
+
 }
 
 
-func (app *Config) register(w http.ResponseWriter, r *http.Request) {
-	// 表单
-	name := r.FormValue("username")
-	pwd  := r.FormValue("password")
+func (app *App) GetBook(w http.ResponseWriter, r *http.Request) {
 
-	if len(name) == 0 || len(pwd) == 0 {
-		app.errorJSON(w, errors.New("请求参数为空"), http.StatusBadRequest)
-		return
-	} 
-
-	payload := jsonResponse{
-		Error:   false,
-		Message: "注册成功",
-	}
-	app.writeJSON(w, http.StatusAccepted, payload)
-}
-
-
-func fetchVideos(w http.ResponseWriter, r *http.Request) {
-	// e.g. `/videos?size=10&&number=1`
-
-	// 参数路由
-	_ = r.URL.Query().Get("size")    // 每页包含的数据条目
-	_ = r.URL.Query().Get("number")  // 当前页码
-}
-
-
-func (app *Config) GetBook(w http.ResponseWriter, r *http.Request) {
-	// e.g. `/books/the_golden_lotus`
-
-	// 动态路由
+	// 动态路由，e.g. `/books/the_golden_lotus`
 	title := mux.Vars(r)["title"]
 	
 	app.writeJSON(w, http.StatusAccepted, title)
 }
+
+
+// 表单 Http.PostBody
+// name := r.FormValue("username")
+// pwd  := r.FormValue("password")

@@ -8,11 +8,11 @@ import (
 )
 
 
-func (app *Config) routes() http.Handler {
+func (app *App) routes() http.Handler {
 
 	r := mux.NewRouter()
 
-	r.HandleFunc("/login", app.Login).Methods("POST")
+	r.HandleFunc("/login", app.login).Methods("POST")
 
 	// 路由分组
 	book := r.PathPrefix("/books").Subrouter()
@@ -59,9 +59,9 @@ func (app *Config) Ping(w http.ResponseWriter, r *http.Request) {
 
 
 // 写法 3
-func (app *Config) Ping(w http.ResponseWriter, r *http.Request) {
+func (app *App) Ping(w http.ResponseWriter, r *http.Request) {
 	payload := jsonResponse {
-		Error: false,
+		Error:   false,
 		Message: "Pong",
 	}
 
@@ -69,7 +69,7 @@ func (app *Config) Ping(w http.ResponseWriter, r *http.Request) {
 }
 
 
-func (app *Config) notFound(w http.ResponseWriter, r *http.Request) {
+func (app *App) notFound(w http.ResponseWriter, r *http.Request) {
 	payload := jsonResponse {
 		Error: false,
 		Message: "请求页面未找到:( 如有疑惑，请联系我们。",

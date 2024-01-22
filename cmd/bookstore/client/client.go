@@ -3,11 +3,13 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log"
 	"time"
 
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
@@ -17,8 +19,7 @@ import (
 )
 
 
-
-var encrypt = flag.Bool("encrypt", false, "开启 ssl/tls 加密传输")
+var EnableEncrypt = flag.Bool("enable", false, "开启 ssl/tls 加密传输")
 
 func main() {
 	flag.Parse()
@@ -26,7 +27,7 @@ func main() {
 	var opts []grpc.DialOption
 	opts = append(opts, grpc.WithUnaryInterceptor(authz("bearer sjxiang")))
 
-	if *encrypt {		
+	if *EnableEncrypt {		
 		// 加载证书
 		creds, err := credentials.NewClientTLSFromFile("./cert/server.crt", "")
 		if err != nil {
@@ -57,13 +58,22 @@ func main() {
 	})
 	
 	if err != nil {
-		if st := status.Convert(err); len(st.Details()) > 0 {
-			for _, detail := range st.Details() {
-				switch t := detail.(type) {
-				case *errdetails.BadRequest:
-					log.Fatalf("请求参数错误导致失败：%v\n", t.GetFieldViolations())
-				}
-			}	
+		// 封装了 FromError，更语义化一点
+		st := status.Convert(err)
+		switch st.Code() {
+		case codes.InvalidArgument: 
+			if len(st.Details()) > 0 {
+				for _, detail := range st.Details() {
+					switch t := detail.(type) {
+					case *errdetails.BadRequest:
+						log.Fatalf("请求参数错误导致失败：%v\n", t.GetFieldViolations())
+					}
+				}	
+			}
+		case codes.Internal:
+			fmt.Println(st.Message())
+		default:
+			// 最差也能捞一个 codes.Unknown
 		}
 
 		log.Fatalf("其它失败，%v\n", err)

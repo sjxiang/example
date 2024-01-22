@@ -76,6 +76,7 @@ func (m *SnippetModel) Latest() ([]*Snippet, error) {
 	for rows.Next() {
 		s := &Snippet{}
 
+		// 常见错误：1、漏了指针 2. 结果集顺序颠倒（和 select 字段 顺序对上）
 		err = rows.Scan(&s.ID, &s.Title, &s.Content, &s.Created, &s.Expires)
 		if err != nil {
 			return nil, err

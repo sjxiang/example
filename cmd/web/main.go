@@ -5,14 +5,14 @@ import (
 	"net/http"
 )
 
-type Config struct {
-	
+type App struct {
+	SecretKey string
 }
 
 func main() {
 
-	app := Config{
-	
+	app := App{
+
 	}
 
 	srv := &http.Server{

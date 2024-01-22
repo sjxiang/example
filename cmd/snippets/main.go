@@ -2,38 +2,67 @@ package main
 
 import (
 	"database/sql"
-	"log"
 	"flag"
+	"log/slog"
 
-	"github.com/sjxiang/example/models"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/sjxiang/example/models"
+	"github.com/sjxiang/example/pkg/logger"
 )
 
 
-type application struct {
+type App struct {
 	snippets       models.SnippetModelInterface
 	users          models.UserModelInterface
 
 	// lifetime
 }
 
+var (
+	dsn = flag.String("dsn", "root:secret@(localhost:3306)/web?utf8mb4&parseTime=true&loc=Local", "MySQL data source name")
+)
+
+type User struct {
+	Name     string 
+	Age      int
+	Password string
+}
+
+func (u User) LogUser() slog.Value {
+	return slog.GroupValue(
+		slog.String("name", u.Name),
+		slog.Int("age", u.Age),
+		slog.String("password", "xxx"),
+	)
+} 
+
 func main() {
-	dsn := flag.String("dsn", "root:secret@(localhost:3306)/web?utf8mb4&parseTime=true&loc=Local", "MySQL data source name")
 	flag.Parse()
+
+	logger.InitLogger()
+
+	user := User{
+		Name:     "sjxiang",
+		Age:      28,
+		Password: "123456",
+	}
+
+	slog.Info("starting api")
+	slog.Info("creating user", "user", user.LogUser())
 
 	db, err := openDB(*dsn)
 	if err != nil {
-		log.Fatal(err)
+		slog.Error("failed to connect database", "err", err, slog.String("package", "handler_user"))
 	}
 	defer db.Close()
 
 
-	app := &application{
-		snippets: &models.SnippetModel{DB: db},
-		users:    &models.UserModel{DB: db},
-	}
+	// app := &App{
+	// 	snippets: &models.SnippetModel{DB: db},
+	// 	users:    &models.UserModel{DB: db},
+	// }
 
-	_  = app
+	// _  = app
 
 	// 注册路由
 
