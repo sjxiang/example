@@ -1,6 +1,8 @@
 package apperr
 
-import "google.golang.org/grpc/codes"
+import (
+	"google.golang.org/grpc/codes"
+)
 
 
 // 鸡肋，友好提示不能搞，沾点其它也不行
@@ -38,20 +40,22 @@ func WithGRPCStatus(err error, code codes.Code) error {
 }
 
 
-// `"OK"`: OK, 0
-// `"CANCELLED"`:/* [sic] */ Canceled,
-// `"UNKNOWN"`:             Unknown,
-// `"INVALID_ARGUMENT"`:    InvalidArgument,
-// `"DEADLINE_EXCEEDED"`:   DeadlineExceeded,
-// `"NOT_FOUND"`:           NotFound,
-// `"ALREADY_EXISTS"`:      AlreadyExists,
-// `"PERMISSION_DENIED"`:   PermissionDenied,
-// `"RESOURCE_EXHAUSTED"`:  ResourceExhausted,
-// `"FAILED_PRECONDITION"`: FailedPrecondition,
-// `"ABORTED"`:             Aborted,
-// `"OUT_OF_RANGE"`:        OutOfRange,
-// `"UNIMPLEMENTED"`:       Unimplemented,
-// `"INTERNAL"`:            Internal,
-// `"UNAVAILABLE"`:         Unavailable,
-// `"DATA_LOSS"`:           DataLoss,
-// `"UNAUTHENTICATED"`:     Unauthenticated, 16
+var status = map[int]codes.Code {
+	0: codes.OK,
+	1: codes.Canceled,
+	2: codes.Unknown,
+	3: codes.InvalidArgument,
+	4: codes.DeadlineExceeded,
+	5: codes.NotFound,
+	6: codes.AlreadyExists,
+	7: codes.PermissionDenied,
+	8: codes.ResourceExhausted,
+	9: codes.FailedPrecondition,
+	10: codes.Aborted,
+	11: codes.OutOfRange,
+	12: codes.Unimplemented,
+	13: codes.Internal,
+	14: codes.Unavailable,
+	15: codes.DataLoss,
+	16: codes.Unauthenticated,
+}

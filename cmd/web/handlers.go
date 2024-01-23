@@ -2,6 +2,8 @@ package main
 
 import (
 	"encoding/base64"
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -10,13 +12,26 @@ import (
 
 
 type Credentials struct {
-	Name     string `json:"name"`
-	Password string `json:"password"`
+	Name       string `json:"name"        validate:"required,min=3,max=20"`
+	Password   string `json:"password"    validate:"required,min=3,max=20,containsany=!@#$%*"`
+	Email      string `json:"email"       validate:"required,email"`
+	VerifyCode string `json:"verify_code" validate:"required,min=6,max=6"`
+	Sex        int    `json:"sex"        validate:"omitempty"`
 }
 
 // 注册
 func (app *App) register(w http.ResponseWriter, r *http.Request) {
-	
+	var req Credentials
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	arguments := ValidateHttpData(req)
+	if len(arguments) > 0 {
+		fmt.Println(arguments)
+		return
+	}
 }
 
 // 登录

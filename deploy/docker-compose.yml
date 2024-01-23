@@ -1,7 +1,7 @@
 version: '3.7'
 
-services:
-  
+
+services:  
   consul-server:
     image: hashicorp/consul:1.10.0
     container_name: consul-server
@@ -12,9 +12,9 @@ services:
       - consul
     ports:
       # 映射到 18500 端口
-      - "18500:8500"
-      - "8600:8600/tcp"
-      - "8600:8600/udp"
+      - "8500:8500"
+      - "18600:8600/tcp"
+      - "18600:8600/udp"
     command: "agent"
 
   consul-client:
@@ -26,6 +26,39 @@ services:
     networks:
       - consul
     command: "agent"
+
+  mysql8:
+    image: mysql:8.0
+    container_name: mysql8
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: my-secret-pw
+    volumes:
+      # MySQL 官方镜像会在容器启动时，自动执行 /docker-entrypoint-initdb.d 文件夹下的 SQL 脚本，从而完成数据库初始化
+      - ./mysql/:/docker-entrypoint-initdb.d/
+    networks:
+      - consul
+    ports:
+      - "3306:3306"
+    command: --default-authentication-plugin=mysql_native_password
+
+  app:
+    image: shgqmrf/bookstore:v0.0.1
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    ports:
+      - "19090:9090"
+      - "18972:8972"
+    environment:
+      - DB_SOURCE=postgresql://root:secret@postgres:5432/simple_bank?sslmode=disable
+      - REDIS_ADDRESS=redis:6379
+    depends_on:
+      - mysql8
+      - consul-server
+      - consul-client
+    command: [ "/app/main" ]
+    
 
 networks:
   consul:

@@ -10,19 +10,19 @@ import (
 
 func (app *App) routes() http.Handler {
 
-	r := mux.NewRouter()
+	router := mux.NewRouter()
 
-	r.HandleFunc("/login", app.login).Methods("POST")
+	router.HandleFunc("/register", app.register).Methods(http.MethodPost).Headers("Accept", "application/json")
 
 	// 路由分组
-	book := r.PathPrefix("/books").Subrouter()
+	book := router.PathPrefix("/books").Subrouter()
 	{
 		// bug：`/books` 和 `/books/`，两者是否有区别
 		book.HandleFunc("/{title}", app.GetBook).Methods("GET")
 	}
 
 	// 自定义 404 页面
-	r.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	router.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		payload := jsonResponse {
 			Error:   false,
 			Message: "请求页面未找到:( 如有疑惑，请联系我们。",
@@ -37,11 +37,13 @@ func (app *App) routes() http.Handler {
 		w.Write(out)
 	})
 
-	r.Use(cors)
-	r.Use(logging)
+	router.Use(cors)
+	router.Use(logging)
 
-	return r  
+	return router  
 }
+
+
 
 
 

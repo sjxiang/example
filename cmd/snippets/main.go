@@ -4,17 +4,22 @@ import (
 	"database/sql"
 	"flag"
 	"log/slog"
+	"net/http"
 
+	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/sjxiang/example/models"
 	"github.com/sjxiang/example/pkg/logger"
 )
 
+type Config struct {
+
+}
 
 type App struct {
-	snippets       models.SnippetModelInterface
-	users          models.UserModelInterface
-
+	snippets  models.SnippetModelInterface
+	users     models.UserModelInterface
+	conf      Config
 	// lifetime
 }
 
@@ -52,19 +57,26 @@ func main() {
 
 	db, err := openDB(*dsn)
 	if err != nil {
-		slog.Error("failed to connect database", "err", err, slog.String("package", "handler_user"))
+		slog.Error("failed to connect database", "err", err, slog.String("package", "main"))
 	}
 	defer db.Close()
 
 
-	// app := &App{
-	// 	snippets: &models.SnippetModel{DB: db},
-	// 	users:    &models.UserModel{DB: db},
-	// }
+	app := &App{
+		snippets: &models.SnippetModel{DB: db},
+		users:    &models.UserModel{DB: db}, 
+	}
 
-	// _  = app
+	router := gin.Default()
+	router.POST("/v1/user", app.Register)
 
-	// 注册路由
+	srv := &http.Server{
+		Handler: router,
+	}
+
+	if err := srv.ListenAndServe(); err != nil {
+		slog.Error("failed to start server", err, slog.String("package", "main"))
+	}
 
 }
 
@@ -90,7 +102,7 @@ func openDB(dsn string) (*sql.DB, error) {
 			500
 		}
 		return
-	}
+	} 
 
  */
  
