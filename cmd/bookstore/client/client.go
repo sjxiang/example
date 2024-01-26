@@ -25,7 +25,7 @@ func main() {
 	flag.Parse()
 
 	var opts []grpc.DialOption
-	opts = append(opts, grpc.WithUnaryInterceptor(authz("bearer sjxiang")))
+	opts = append(opts, grpc.WithUnaryInterceptor(authz()))
 
 	if *EnableEncrypt {		
 		// 加载证书
@@ -85,11 +85,12 @@ func main() {
 
 
 // 拦截器（客户端），认证
-func authz(token string) grpc.UnaryClientInterceptor {
+func authz() grpc.UnaryClientInterceptor {
 	return func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 		// 创建 metadata 1
 		md := metadata.Pairs(
-			"authorization", token,
+			"authorization", "bearer tyr",
+			"subject",       "root", 
 		)
 
 		// 创建 metadata 2

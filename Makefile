@@ -16,7 +16,7 @@ proto:
 	$(PROTO_DIR)/*.proto
 
 
-store:
+mysql:
 	docker run \
 	--name mysql \
 	-p 3306:3306 \
@@ -24,6 +24,23 @@ store:
 	-e MYSQL_DATABASE=bookstore \
 	-d mysql:8.0
 
+consul:
+	docker run \
+	--name=dev-consul \
+	-p 8500:8500 \
+	-d hashicorp/consul:1.10.0
+
+# http://localhost:8500/ui/dc1/services
+
+# $ docker exec -it bash  <container_id>
+# $ docker logs <container_id>
+
+
+start:
+	docker-compose up -d
+
+end:
+	docker-compose -f ./docker-compose.yml down
 
 login:
 	docker exec -it mysql bash
@@ -37,3 +54,11 @@ help:
 .PHONY: proto store login help
 
 
+.PHONY: compile
+compile:
+	protoc api/v1/*.proto \
+		--go_out=. \
+		--go-grpc_out=. \
+		--go_opt=paths=source_relative \
+		--go-grpc_opt=paths=source_relative \
+		--proto_path=.

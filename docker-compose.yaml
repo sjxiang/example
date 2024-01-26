@@ -1,0 +1,26 @@
+version: '3.8'
+
+
+services:  
+  consul:
+    image: hashicorp/consul:1.13
+    container_name: consul
+    ports:
+      # 映射到本地 8500 端口
+      - "127.0.0.1:8500:8500"
+    # 
+    command: agent -ui -client 0.0.0.0 -dev
+
+
+  mysql8:
+    image: mysql:8.0
+    container_name: mysql8
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: my-secret-pw
+    volumes:
+      # MySQL 官方镜像会在容器启动时，自动执行 /docker-entrypoint-initdb.d 文件夹下的 SQL 脚本，从而完成数据库初始化
+      - ./scripts/mysql/:/docker-entrypoint-initdb.d/
+    ports:
+      - "127.0.0.1:3306:3306"
+    command: --default-authentication-plugin=mysql_native_password
